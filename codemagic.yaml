@@ -31,8 +31,8 @@ workflows:
                   applicationId "com.alsharq.global"
                   minSdk 21
                   targetSdk 34
-                  versionCode 4
-                  versionName "1.0"
+                  versionCode 5
+                  versionName "1.1"
               }
               compileOptions {
                   sourceCompatibility JavaVersion.VERSION_17
@@ -46,6 +46,7 @@ workflows:
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               <application android:label="الشرق العالمي" android:usesCleartextTraffic="true">
                   <activity android:name=".MainActivity" android:exported="true" android:theme="@style/Theme.AppCompat.Light.NoActionBar">
                       <intent-filter>
@@ -63,9 +64,12 @@ workflows:
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
+          import android.webkit.WebResourceError;
+          import android.webkit.WebResourceRequest;
           import android.app.Activity;
           public class MainActivity extends Activity {
               private WebView webView;
+              private String siteUrl = "https://alsharq-global.com";
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
@@ -74,8 +78,15 @@ workflows:
                   WebSettings s = webView.getSettings();
                   s.setJavaScriptEnabled(true);
                   s.setDomStorageEnabled(true);
-                  webView.setWebViewClient(new WebViewClient());
-                  webView.loadUrl("https://alsharq-global.com");
+                  s.setCacheMode(WebSettings.LOAD_DEFAULT);
+                  webView.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                          String html = "<html dir='rtl'><body style='text-align:center;padding-top:100px;font-family:sans-serif;'><h2>الشرق العالمي</h2><p>الموقع غير متاح حاليا</p><p>تأكد من اتصال الانترنت أو حاول لاحقا</p><p style='color:gray;'>"+siteUrl+"</p><br><button onclick='window.location.reload()' style='padding:10px 20px;'>إعادة المحاولة</button></body></html>";
+                          view.loadData(html, "text/html; charset=utf-8", "UTF-8");
+                      }
+                  });
+                  webView.loadUrl(siteUrl);
               }
               @Override
               public void onBackPressed() {
