@@ -1,13 +1,14 @@
 workflows:
   android-workflow:
-    name: AlSharq Team App
+    name: AlSharq Team Fixed
     max_build_duration: 30
     instance_type: mac_mini_m1
     environment:
       java: 17
     scripts:
-      - name: Build App
+      - name: Build Full APK
         script: |
+          set -e
           mkdir -p app/src/main
           echo "include ':app'" > settings.gradle
           printf "android.useAndroidX=true\n" > gradle.properties
@@ -16,7 +17,7 @@ workflows:
           END
           cat > app/build.gradle <<'END'
           plugins{id 'com.android.application'}
-          android{namespace 'com.alsharq.team';compileSdk 33;defaultConfig{applicationId "com.alsharq.team";minSdk 21;targetSdk 33;versionCode 10;versionName "2.0"}compileOptions{sourceCompatibility JavaVersion.VERSION_17;targetCompatibility JavaVersion.VERSION_17}}
+          android{namespace 'com.alsharq.team';compileSdk 33;defaultConfig{applicationId "com.alsharq.team";minSdk 21;targetSdk 33;versionCode 11;versionName "2.0"}compileOptions{sourceCompatibility JavaVersion.VERSION_17;targetCompatibility JavaVersion.VERSION_17}}
           dependencies{implementation 'androidx.appcompat:appcompat:1.6.1';implementation 'androidx.cardview:cardview:1.0.0'}
           END
           mkdir -p app/src/main/java/com/alsharq/team
@@ -65,7 +66,7 @@ workflows:
           list=new LinearLayout(this);list.setOrientation(1);list.setPadding(20,20,20,20);
           ScrollView sv=new ScrollView(this);sv.addView(list);root.addView(h);root.addView(sv);setContentView(root);
           pref=getSharedPreferences("data",0);load();}
-          void load(){list.removeAllViews();String k=title.replace(" ","_");String s=pref.getString(k,"");items=new ArrayList<>();if(!s.isEmpty())items.addAll(Arrays.asList(s.split(";;")));else if(!admin)items.add("لا يوجد محتوى بعد - سيضيف المدير قريبا");
+          void load(){list.removeAllViews();String k=title.replace(" ","_");String s=pref.getString(k,"");items=new ArrayList<>();if(!s.isEmpty())items.addAll(Arrays.asList(s.split(";;")));else if(!admin)items.add("لا يوجد محتوى بعد");
           for(int i=0;i<items.size();i++){LinearLayout card=new LinearLayout(this);card.setOrientation(1);card.setBackgroundColor(Color.WHITE);card.setPadding(25,25,25,25);LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,0,0,15);card.setLayoutParams(lp);card.setElevation(4);
           TextView t=new TextView(this);t.setText(items.get(i));t.setTextSize(15);card.addView(t);
           if(admin){LinearLayout bb=new LinearLayout(this);bb.setOrientation(0);Button e=new Button(this);e.setText("تعديل");Button d=new Button(this);d.setText("حذف");d.setTextColor(Color.RED);int idx=i;d.setOnClickListener(v->{items.remove(idx);save();load();});e.setOnClickListener(v->edit(idx));bb.addView(e,new LinearLayout.LayoutParams(0,-2,1));bb.addView(d,new LinearLayout.LayoutParams(0,-2,1));card.addView(bb);}list.addView(card);}}
@@ -73,10 +74,8 @@ workflows:
           void save(){pref.edit().putString(title.replace(" ","_"),String.join(";;",items)).apply();Toast.makeText(this,"تم الحفظ",0).show();}
           }
           END
-          gradle wrapper --gradle-version 8.4 || true
-          chmod +x ./gradlew || true
-      - name: Build APK
-        script: |
+          if [ ! -f ./gradlew ]; then gradle wrapper --gradle-version 8.4; fi
+          chmod +x ./gradlew
           ./gradlew :app:assembleDebug --no-daemon
     artifacts:
       - app/build/outputs/apk/debug/*.apk
