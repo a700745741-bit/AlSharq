@@ -1,6 +1,6 @@
 workflows:
   android-workflow:
-    name: AlSharq Light
+    name: AlSharq Final 8 Steps Fixed
     max_build_duration: 30
     instance_type: mac_mini_m1
     environment:
@@ -9,17 +9,18 @@ workflows:
       - name: Build APK
         script: |
           set -e
+          rm -rf app/src/main/res app/src/main/java/com app/build.gradle build.gradle settings.gradle gradle.properties gradle
           mkdir -p app/src/main/java/com/alsharq/team
           echo "include ':app'" > settings.gradle
           echo "android.useAndroidX=true" > gradle.properties
-          cat > build.gradle <<'GRADLE1'
+          cat > build.gradle <<'G1'
           buildscript {
               repositories { google(); mavenCentral() }
               dependencies { classpath 'com.android.tools.build:gradle:8.1.0' }
           }
           allprojects { repositories { google(); mavenCentral() } }
-          GRADLE1
-          cat > app/build.gradle <<'GRADLE2'
+          G1
+          cat > app/build.gradle <<'G2'
           plugins { id 'com.android.application' }
           android {
               namespace 'com.alsharq.team'
@@ -27,7 +28,7 @@ workflows:
               defaultConfig {
                   applicationId "com.alsharq.team"
                   minSdk 21; targetSdk 33
-                  versionCode 14; versionName "3.0"
+                  versionCode 22; versionName "6.0"
               }
               compileOptions {
                   sourceCompatibility JavaVersion.VERSION_17
@@ -35,54 +36,57 @@ workflows:
               }
           }
           dependencies {
-              implementation 'androidx.appcompat:appcompat:1.6.1'
               implementation 'androidx.cardview:cardview:1.0.0'
           }
-          GRADLE2
+          G2
+          mkdir -p app/src/main/res/values
+          cat > app/src/main/res/values/colors.xml <<'COL'
+          <resources><color name="black">#000000</color><color name="white">#FFFFFF</color></resources>
+          COL
           cat > app/src/main/AndroidManifest.xml <<'MAN'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET"/>
               <application android:label="فريق الشرق">
-                  <activity android:name=".MainActivity" android:exported="true">
+                  <activity android:name=".MainActivity" android:exported="true" android:theme="@android:style/Theme.NoTitleBar">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN"/>
                           <category android:name="android.intent.category.LAUNCHER"/>
                       </intent-filter>
                   </activity>
-                  <activity android:name=".DetailActivity"/>
+                  <activity android:name=".DetailActivity" android:theme="@android:style/Theme.NoTitleBar"/>
               </application>
           </manifest>
           MAN
-          cat > app/src/main/java/com/alsharq/team/MainActivity.java <<'JAVA1'
+          cat > app/src/main/java/com/alsharq/team/MainActivity.java <<'J1'
           package com.alsharq.team;
-          import android.app.*;import android.content.*;import android.graphics.*;import android.graphics.drawable.*;import android.net.Uri;import android.os.Bundle;import android.view.*;import android.widget.*;import androidx.appcompat.app.AppCompatActivity;import androidx.cardview.widget.CardView;
-          public class MainActivity extends AppCompatActivity{
+          import android.app.*;import android.content.*;import android.graphics.*;import android.graphics.drawable.*;import android.net.Uri;import android.os.Bundle;import android.view.*;import android.widget.*;import androidx.cardview.widget.CardView;
+          public class MainActivity extends Activity{
           protected void onCreate(Bundle b){super.onCreate(b);
           LinearLayout root=new LinearLayout(this);root.setOrientation(1);root.setBackgroundColor(Color.parseColor("#F5F7FB"));
           LinearLayout top=new LinearLayout(this);top.setOrientation(0);top.setPadding(15,10,15,10);top.setBackgroundColor(Color.parseColor("#0d47a1"));
-          Button bf=new Button(this);bf.setText("فيسبوك");bf.setTextColor(Color.WHITE);bf.setBackgroundColor(Color.parseColor("#1877F2"));bf.setOnClickListener(v->{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.facebook.com/ALSHAREQ/")));});
-          Button bw=new Button(this);bw.setText("واتساب");bw.setTextColor(Color.WHITE);bw.setBackgroundColor(Color.parseColor("#25D366"));bw.setOnClickListener(v->{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://chat.whatsapp.com/GKe8JAo24dO4tjdY9XCMc0")));});
+          Button bf=new Button(this);bf.setText("فيسبوك");bf.setTextColor(-1);bf.setBackgroundColor(Color.parseColor("#1877F2"));bf.setOnClickListener(v->{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.facebook.com/ALSHAREQ/")));});
+          Button bw=new Button(this);bw.setText("واتساب");bw.setTextColor(-1);bw.setBackgroundColor(Color.parseColor("#25D366"));bw.setOnClickListener(v->{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://chat.whatsapp.com/GKe8JAo24dO4tjdY9XCMc0")));});
           top.addView(bf,new LinearLayout.LayoutParams(0,-2,1));top.addView(bw,new LinearLayout.LayoutParams(0,-2,1));
           LinearLayout header=new LinearLayout(this);header.setOrientation(1);header.setGravity(Gravity.CENTER);header.setPadding(0,35,0,50);header.setBackgroundColor(Color.parseColor("#1976D2"));
-          TextView logo=new TextView(this);logo.setText("الشرق");logo.setTextColor(Color.WHITE);logo.setTextSize(26);logo.setGravity(Gravity.CENTER);logo.setTypeface(null,Typeface.BOLD);
+          TextView logo=new TextView(this);logo.setText("الشرق");logo.setTextColor(-1);logo.setTextSize(26);logo.setGravity(Gravity.CENTER);logo.setTypeface(null,Typeface.BOLD);
           GradientDrawable circ=new GradientDrawable();circ.setShape(1);circ.setStroke(4,Color.WHITE);circ.setColor(Color.parseColor("#1565C0"));logo.setBackground(circ);
           int s=(int)(90*getResources().getDisplayMetrics().density);logo.setLayoutParams(new LinearLayout.LayoutParams(s,s));logo.setOnLongClickListener(v->{login();return true;});
-          TextView t1=new TextView(this);t1.setText("فريق الشرق");t1.setTextColor(Color.WHITE);t1.setTextSize(26);t1.setGravity(Gravity.CENTER);t1.setPadding(0,15,0,0);t1.setTypeface(null,Typeface.BOLD);
-          TextView t2=new TextView(this);t2.setText("الرياضي الثقافي الاجتماعي بالحامي");t2.setTextColor(Color.WHITE);t2.setTextSize(12);t2.setGravity(Gravity.CENTER);
+          TextView t1=new TextView(this);t1.setText("فريق الشرق");t1.setTextColor(-1);t1.setTextSize(26);t1.setGravity(Gravity.CENTER);t1.setPadding(0,15,0,0);t1.setTypeface(null,Typeface.BOLD);
+          TextView t2=new TextView(this);t2.setText("الرياضي الثقافي الاجتماعي بالحامي");t2.setTextColor(-1);t2.setTextSize(12);t2.setGravity(Gravity.CENTER);
           header.addView(logo);header.addView(t1);header.addView(t2);
           GridLayout grid=new GridLayout(this);grid.setColumnCount(2);grid.setPadding(15,15,15,15);grid.setUseDefaultMargins(true);
-          grid.addView(card("الاخبار العاجلة"));grid.addView(card("نبذة عن الفريق"));grid.addView(card("رؤساء الفريق"));grid.addView(card("انجازات الفريق"));grid.addView(card("أنشطة الفريق"));grid.addView(card("رحلات الفريق"));grid.addView(card("معرض الصور"));grid.addView(card("الفيديوهات"));
+          grid.addView(card("نبذة الفريق"));grid.addView(card("بطولات الفريق"));grid.addView(card("رؤساء الفريق"));grid.addView(card("صور الفريق"));grid.addView(card("البومات الفريق"));grid.addView(card("اخبار الفريق"));grid.addView(card("رابط الفريق واتس اب"));grid.addView(card("رابط الفريق فيس بوك"));
           ScrollView sv=new ScrollView(this);LinearLayout cont=new LinearLayout(this);cont.setOrientation(1);cont.addView(header);cont.addView(grid);
           TextView hint=new TextView(this);hint.setText("اضغط مطولاً على الشرق للدخول كمدير\nكلمة السر: 1234");hint.setGravity(Gravity.CENTER);hint.setTextColor(Color.GRAY);hint.setTextSize(11);hint.setPadding(0,20,0,30);cont.addView(hint);sv.addView(cont);
           root.addView(top);root.addView(sv);setContentView(root);}
-          CardView card(String title){CardView c=new CardView(this);c.setRadius(25);c.setCardElevation(6);c.setUseCompatPadding(true);GridLayout.LayoutParams lp=new GridLayout.LayoutParams();lp.width=0;lp.height=(int)(90*getResources().getDisplayMetrics().density);lp.columnSpec=GridLayout.spec(GridLayout.UNDEFINED,1f);lp.setMargins(10,10,10,10);c.setLayoutParams(lp);TextView tv=new TextView(this);tv.setText(title);tv.setGravity(Gravity.CENTER);tv.setTextColor(Color.parseColor("#0d47a1"));tv.setTypeface(null,Typeface.BOLD);tv.setTextSize(13);c.addView(tv);c.setOnClickListener(v->{Intent i=new Intent(this,DetailActivity.class);i.putExtra("t",title);startActivity(i);});return c;}
+          CardView card(String title){CardView c=new CardView(this);c.setRadius(25);c.setCardElevation(6);c.setUseCompatPadding(true);GridLayout.LayoutParams lp=new GridLayout.LayoutParams();lp.width=0;lp.height=(int)(90*getResources().getDisplayMetrics().density);lp.columnSpec=GridLayout.spec(GridLayout.UNDEFINED,1f);lp.setMargins(10,10,10,10);c.setLayoutParams(lp);TextView tv=new TextView(this);tv.setText(title);tv.setGravity(Gravity.CENTER);tv.setTextColor(Color.parseColor("#0d47a1"));tv.setTypeface(null,Typeface.BOLD);tv.setTextSize(13);c.addView(tv);c.setOnClickListener(v->{if(title.contains("واتس")){startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://chat.whatsapp.com/GKe8JAo24dO4tjdY9XCMc0")));}else if(title.contains("فيس")){startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.facebook.com/ALSHAREQ/")));}else{Intent i=new Intent(this,DetailActivity.class);i.putExtra("t",title);startActivity(i);}});return c;}
           void login(){AlertDialog.Builder b=new AlertDialog.Builder(this);b.setTitle("دخول المدير");EditText e=new EditText(this);e.setHint("كلمة السر 1234");b.setView(e);b.setPositiveButton("دخول",(d,w)->{if(e.getText().toString().equals("1234")){Intent i=new Intent(this,DetailActivity.class);i.putExtra("t","لوحة تحكم المدير");i.putExtra("admin",true);startActivity(i);}else Toast.makeText(this,"خطأ",0).show();});b.setNegativeButton("الغاء",null);b.show();}
           }
-          JAVA1
-          cat > app/src/main/java/com/alsharq/team/DetailActivity.java <<'JAVA2'
+          J1
+          cat > app/src/main/java/com/alsharq/team/DetailActivity.java <<'J2'
           package com.alsharq.team;
-          import android.app.*;import android.content.*;import android.os.Bundle;import android.view.*;import android.widget.*;import androidx.appcompat.app.AppCompatActivity;import java.util.*;
-          public class DetailActivity extends AppCompatActivity{
+          import android.app.*;import android.content.*;import android.os.Bundle;import android.view.*;import android.widget.*;import java.util.*;
+          public class DetailActivity extends Activity{
           String title;boolean isAdmin;LinearLayout list;SharedPreferences pref;ArrayList<String> items;
           protected void onCreate(Bundle b){super.onCreate(b);title=getIntent().getStringExtra("t");isAdmin=getIntent().getBooleanExtra("admin",false);
           LinearLayout root=new LinearLayout(this);root.setOrientation(1);root.setBackgroundColor(0xFFF5F7FB);
@@ -94,15 +98,15 @@ workflows:
           list=new LinearLayout(this);list.setOrientation(1);list.setPadding(20,20,20,20);
           ScrollView sv=new ScrollView(this);sv.addView(list);root.addView(h);root.addView(sv);setContentView(root);
           pref=getSharedPreferences("data",0);load();}
-          void load(){list.removeAllViews();String k=title.replace(" ","_");String s=pref.getString(k,"");items=new ArrayList<>();if(!s.isEmpty())items.addAll(Arrays.asList(s.split(";;NEXT;;")));else items.add(isAdmin?"انت الآن في لوحة المدير - اضغط + إضافة لإضافة خبر أو صورة أو فيديو":"لا يوجد محتوى بعد");
-          for(int i=0;i<items.size();i++){LinearLayout card=new LinearLayout(this);card.setOrientation(1);card.setBackgroundColor(-1);card.setPadding(25,25,25,25);LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,0,0,15);card.setLayoutParams(lp);card.setElevation(4);
+          void load(){list.removeAllViews();String k=title.replace(" ","_");String s=pref.getString(k,"");items=new ArrayList<>();if(!s.isEmpty())items.addAll(Arrays.asList(s.split(";;NEXT;;")));else items.add(isAdmin?"انت في لوحة المدير - اضغط + إضافة":"لا يوجد محتوى بعد");
+          for(int i=0;i<items.size();i++){LinearLayout card=new LinearLayout(this);card.setOrientation(1);card.setBackgroundColor(-1);card.setPadding(25,25,25,25);LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,0,0,15);card.setLayoutParams(lp);
           TextView t=new TextView(this);t.setText(items.get(i));t.setTextSize(16);card.addView(t);
           if(isAdmin){LinearLayout bb=new LinearLayout(this);bb.setOrientation(0);Button e=new Button(this);e.setText("تعديل");Button d=new Button(this);d.setText("حذف");d.setTextColor(0xFFFF0000);int idx=i;d.setOnClickListener(v->{items.remove(idx);save();load();});e.setOnClickListener(v->editDialog(idx));bb.addView(e,new LinearLayout.LayoutParams(0,-2,1));bb.addView(d,new LinearLayout.LayoutParams(0,-2,1));card.addView(bb);}list.addView(card);}}
-          void addDialog(){LinearLayout lay=new LinearLayout(this);lay.setOrientation(1);lay.setPadding(20,20,20,20);EditText e1=new EditText(this);e1.setMinLines(3);e1.setHint("اكتب الخبر هنا...");EditText e2=new EditText(this);e2.setHint("رابط صورة أو فيديو (اختياري)");lay.addView(e1);lay.addView(e2);new AlertDialog.Builder(this).setTitle("إضافة جديد").setView(lay).setPositiveButton("حفظ",(d,w)->{String txt=e1.getText().toString();String link=e2.getText().toString();if(txt.isEmpty())return;if(!link.isEmpty())txt=txt+"\n\nرابط: "+link;items.add(txt);save();load();}).setNegativeButton("الغاء",null).show();}
+          void addDialog(){LinearLayout lay=new LinearLayout(this);lay.setOrientation(1);lay.setPadding(20,20,20,20);EditText e1=new EditText(this);e1.setMinLines(3);e1.setHint("اكتب المحتوى هنا...");lay.addView(e1);new AlertDialog.Builder(this).setTitle("إضافة").setView(lay).setPositiveButton("حفظ",(d,w)->{String txt=e1.getText().toString();if(txt.isEmpty())return;items.add(txt);save();load();}).setNegativeButton("الغاء",null).show();}
           void editDialog(int idx){EditText e=new EditText(this);e.setText(items.get(idx));e.setMinLines(3);new AlertDialog.Builder(this).setTitle("تعديل").setView(e).setPositiveButton("حفظ",(d,w)->{items.set(idx,e.getText().toString());save();load();}).setNegativeButton("الغاء",null).show();}
           void save(){pref.edit().putString(title.replace(" ","_"),String.join(";;NEXT;;",items)).apply();Toast.makeText(this,"تم الحفظ",0).show();}
           }
-          JAVA2
+          J2
           gradle wrapper --gradle-version 8.4
           chmod +x ./gradlew
           ./gradlew :app:assembleDebug --no-daemon
