@@ -31,8 +31,8 @@ workflows:
                   applicationId "com.alsharq.global"
                   minSdk 21
                   targetSdk 34
-                  versionCode 7
-                  versionName "1.3"
+                  versionCode 8
+                  versionName "1.4-fix"
               }
               compileOptions {
                   sourceCompatibility JavaVersion.VERSION_17
@@ -69,6 +69,9 @@ workflows:
           import android.widget.LinearLayout;
           import android.view.ViewGroup;
           import android.graphics.Color;
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.webkit.WebResourceRequest;
           public class MainActivity extends Activity {
               private WebView webView;
               private String fbUrl = "https://www.facebook.com/ALSHAREQ/";
@@ -79,12 +82,10 @@ workflows:
                   LinearLayout mainLayout = new LinearLayout(this);
                   mainLayout.setOrientation(LinearLayout.VERTICAL);
                   mainLayout.setBackgroundColor(Color.WHITE);
-
                   LinearLayout btnLayout = new LinearLayout(this);
                   btnLayout.setOrientation(LinearLayout.HORIZONTAL);
                   btnLayout.setBackgroundColor(Color.parseColor("#0d47a1"));
                   btnLayout.setPadding(10,10,10,10);
-
                   Button btnFb = new Button(this);
                   btnFb.setText("فيسبوك");
                   btnFb.setTextColor(Color.WHITE);
@@ -92,7 +93,6 @@ workflows:
                   LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
                   p1.setMargins(5,0,5,0);
                   btnFb.setLayoutParams(p1);
-
                   Button btnWa = new Button(this);
                   btnWa.setText("واتساب");
                   btnWa.setTextColor(Color.WHITE);
@@ -100,26 +100,59 @@ workflows:
                   LinearLayout.LayoutParams p2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
                   p2.setMargins(5,0,5,0);
                   btnWa.setLayoutParams(p2);
-
                   btnLayout.addView(btnFb);
                   btnLayout.addView(btnWa);
-
                   webView = new WebView(this);
                   LinearLayout.LayoutParams wp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                   webView.setLayoutParams(wp);
                   WebSettings s = webView.getSettings();
                   s.setJavaScriptEnabled(true);
                   s.setDomStorageEnabled(true);
-                  webView.setWebViewClient(new WebViewClient());
-
+                  s.setCacheMode(WebSettings.LOAD_DEFAULT);
+                  s.setUserAgentString(s.getUserAgentString() + " AlSharqApp");
+                  webView.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                          String url = request.getUrl().toString();
+                          if (url.startsWith("whatsapp://") || url.startsWith("fb://") || url.startsWith("intent://") || url.startsWith("vnd.youtube://")) {
+                              try {
+                                  Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                  startActivity(intent);
+                                  return true;
+                              } catch (Exception e) {
+                                  if (url.contains("whatsapp")) {
+                                      try {
+                                          startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(waUrl)));
+                                      } catch (Exception ex) {}
+                                      return true;
+                                  }
+                              }
+                          }
+                          if (url.contains("chat.whatsapp.com")) {
+                              try {
+                                  Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                  startActivity(intent);
+                                  return true;
+                              } catch (Exception e) {
+                                  return false;
+                              }
+                          }
+                          return false;
+                      }
+                  });
                   mainLayout.addView(btnLayout);
                   mainLayout.addView(webView);
                   setContentView(mainLayout);
-
                   webView.loadUrl(fbUrl);
-
                   btnFb.setOnClickListener(v -> webView.loadUrl(fbUrl));
-                  btnWa.setOnClickListener(v -> webView.loadUrl(waUrl));
+                  btnWa.setOnClickListener(v -> {
+                      try {
+                          Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(waUrl));
+                          startActivity(intent);
+                      } catch (Exception e) {
+                          webView.loadUrl(waUrl);
+                      }
+                  });
               }
               @Override
               public void onBackPressed() {
