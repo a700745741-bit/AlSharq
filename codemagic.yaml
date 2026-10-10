@@ -10,13 +10,11 @@ workflows:
         script: |
           mkdir -p app/src/main
           echo "include ':app'" > settings.gradle
-          
           cat > gradle.properties <<'EOF'
           android.useAndroidX=true
           android.enableJetifier=true
           org.gradle.jvmargs=-Xmx4g
           EOF
-
           cat > build.gradle <<'EOF'
           buildscript {
               repositories { google(); mavenCentral() }
@@ -24,7 +22,6 @@ workflows:
           }
           allprojects { repositories { google(); mavenCentral() } }
           EOF
-
           cat > app/build.gradle <<'EOF'
           plugins { id 'com.android.application' }
           android {
@@ -34,7 +31,7 @@ workflows:
                   applicationId "com.alsharq.global"
                   minSdk 21
                   targetSdk 34
-                  versionCode 3
+                  versionCode 4
                   versionName "1.0"
               }
               compileOptions {
@@ -46,7 +43,6 @@ workflows:
               implementation 'androidx.appcompat:appcompat:1.6.1'
           }
           EOF
-
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET" />
@@ -60,7 +56,6 @@ workflows:
               </application>
           </manifest>
           EOF
-
           mkdir -p app/src/main/java/com/alsharq/global
           cat > app/src/main/java/com/alsharq/global/MainActivity.java <<'EOF'
           package com.alsharq.global;
@@ -69,7 +64,6 @@ workflows:
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
           import android.app.Activity;
-
           public class MainActivity extends Activity {
               private WebView webView;
               @Override
@@ -85,4 +79,16 @@ workflows:
               }
               @Override
               public void onBackPressed() {
-                  if (webView.canGoBack
+                  if (webView.canGoBack()) webView.goBack();
+                  else super.onBackPressed();
+              }
+          }
+          EOF
+          rm -rf ~/.gradle/caches .gradle app/build build
+          if [ ! -f ./gradlew ]; then gradle wrapper --gradle-version 8.4; fi
+          chmod +x ./gradlew
+      - name: Build APK
+        script: |
+          ./gradlew clean :app:assembleDebug --refresh-dependencies
+    artifacts:
+      - app/build/outputs/apk/debug/*.apk
