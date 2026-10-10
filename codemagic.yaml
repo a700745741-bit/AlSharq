@@ -6,16 +6,83 @@ workflows:
     environment:
       java: 17
     scripts:
-      - name: Clean everything
+      - name: Fix project structure
         script: |
-          rm -rf ~/.gradle/caches
-          rm -rf .gradle
-          rm -rf app/build
-          rm -rf build
+          mkdir -p app/src/main
+          echo "include ':app'" > settings.gradle
+          
+          # هذا هو الملف الناقص اللي كان يسبب الخطأ الأحمر
+          cat > gradle.properties <<'EOF'
+          android.useAndroidX=true
+          android.enableJetifier=true
+          org.gradle.jvmargs=-Xmx4g
+          EOF
+
+          cat > build.gradle <<'EOF'
+          buildscript {
+              repositories { google(); mavenCentral() }
+              dependencies { classpath 'com.android.tools.build:gradle:8.2.0' }
+          }
+          allprojects { repositories { google(); mavenCentral() } }
+          EOF
+
+          cat > app/build.gradle <<'EOF'
+          plugins { id 'com.android.application' }
+          android {
+              namespace 'com.alsharq.global'
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.alsharq.global"
+                  minSdk 21
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.11.0'
+          }
+          EOF
+
+          if [ ! -f app/src/main/AndroidManifest.xml ]; then
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <application android:label="AlSharq" android:theme="@android:style/Theme.Light">
+                  <activity android:name=".MainActivity" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+          fi
+
+          mkdir -p app/src/main/java/com/alsharq/global
+          if [ ! -f app/src/main/java/com/alsharq/global/MainActivity.java ]; then
+          cat > app/src/main/java/com/alsharq/global/MainActivity.java <<'EOF'
+          package com.alsharq.global;
+          import android.os.Bundle;
+          import androidx.appcompat.app.AppCompatActivity;
+          public class MainActivity extends AppCompatActivity {
+              protected void onCreate(Bundle b){ super.onCreate(b); }
+          }
+          EOF
+          fi
+          
+          rm -rf ~/.gradle/caches .gradle app/build build
           if [ ! -f ./gradlew ]; then gradle wrapper --gradle-version 8.4; fi
           chmod +x ./gradlew
+
       - name: Build APK
         script: |
-          ./gradlew clean :app:assembleDebug --refresh-dependencies --stacktrace
+          ./gradlew clean :app:assembleDebug --refresh-dependencies
+
     artifacts:
       - app/build/outputs/apk/debug/*.apk
