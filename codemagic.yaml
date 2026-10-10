@@ -1,7 +1,7 @@
 workflows:
   android-workflow:
-    name: AlSharq Fixed
-    max_build_duration: 20
+    name: AlSharq Fixed Yaml
+    max_build_duration: 30
     instance_type: mac_mini_m1
     environment:
       java: 17
@@ -9,30 +9,30 @@ workflows:
       - name: Build APK
         script: |
           set -e
-          rm -rf app/build.gradle build.gradle settings.gradle gradle.properties gradle app/src/main/res app/src/main/java/com
+          rm -rf app/src/main/res app/src/main/java/com app/build.gradle build.gradle settings.gradle gradle.properties gradle
           mkdir -p app/src/main/java/com/alsharq/team
           mkdir -p app/src/main/res/values
           echo "include ':app'" > settings.gradle
           echo "android.useAndroidX=true" > gradle.properties
           echo " " > build.gradle
-          cat > app/build.gradle <<'EOF'
+          cat > app/build.gradle <<'E1'
           plugins { id 'com.android.application' }
           android {
               namespace 'com.alsharq.team'
               compileSdk 33
-              defaultConfig { applicationId "com.alsharq.team"; minSdk 21; targetSdk 33; versionCode 32; versionName "9.0" }
+              defaultConfig { applicationId "com.alsharq.team"; minSdk 21; targetSdk 33; versionCode 33; versionName "9.0" }
               compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
           }
           dependencies {
               implementation 'androidx.cardview:cardview:1.0.0'
               implementation 'androidx.appcompat:appcompat:1.6.1'
           }
-          EOF
+          E1
           echo '<resources></resources>' > app/src/main/res/values/colors.xml
-          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          cat > app/src/main/AndroidManifest.xml <<'E2'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/><application android:label="فريق الشرق"><activity android:name=".MainActivity" android:exported="true" android:theme="@android:style/Theme.Light.NoTitleBar"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity><activity android:name=".DetailActivity" android:theme="@android:style/Theme.Light.NoTitleBar"/></application></manifest>
-          EOF
-          cat > app/src/main/java/com/alsharq/team/MainActivity.java <<'EOF'
+          E2
+          cat > app/src/main/java/com/alsharq/team/MainActivity.java <<'E3'
           package com.alsharq.team;
           import android.app.*;import android.content.*;import android.graphics.*;import android.graphics.drawable.*;import android.net.Uri;import android.os.Bundle;import android.view.*;import android.widget.*;import androidx.cardview.widget.CardView;
           public class MainActivity extends Activity{
@@ -55,8 +55,8 @@ workflows:
           CardView card(String t){CardView c=new CardView(this);c.setRadius(30);c.setCardElevation(8);c.setUseCompatPadding(true);c.setCardBackgroundColor(Color.WHITE);GridLayout.LayoutParams lp=new GridLayout.LayoutParams();lp.width=0;lp.height=(int)(110*getResources().getDisplayMetrics().density);lp.columnSpec=GridLayout.spec(GridLayout.UNDEFINED,1f);lp.setMargins(12,12,12,12);c.setLayoutParams(lp);TextView tv=new TextView(this);tv.setText(t);tv.setGravity(Gravity.CENTER);tv.setTextColor(Color.parseColor("#0d47a1"));tv.setTypeface(null,Typeface.BOLD);tv.setTextSize(14);c.addView(tv);c.setOnClickListener(v->{if(t.contains("واتس")){startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://chat.whatsapp.com/GKe8JAo24dO4tjdY9XCMc0")));}else if(t.contains("فيس")){startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.facebook.com/ALSHAREQ/")));}else{Intent i=new Intent(this,DetailActivity.class);i.putExtra("t",t);startActivity(i);}});return c;}
           void login(){AlertDialog.Builder b=new AlertDialog.Builder(this);b.setTitle("دخول المدير");EditText e=new EditText(this);e.setHint("كلمة السر 1234");b.setView(e);b.setPositiveButton("دخول",(d,w)->{if(e.getText().toString().equals("1234")){Intent i=new Intent(this,DetailActivity.class);i.putExtra("t","لوحة تحكم المدير");i.putExtra("admin",true);startActivity(i);}else Toast.makeText(this,"خطأ",0).show();});b.setNegativeButton("الغاء",null);b.show();}
           }
-          EOF
-          cat > app/src/main/java/com/alsharq/team/DetailActivity.java <<'EOF'
+          E3
+          cat > app/src/main/java/com/alsharq/team/DetailActivity.java <<'E4'
           package com.alsharq.team;
           import android.app.*;import android.content.*;import android.os.Bundle;import android.view.*;import android.widget.*;import java.util.*;
           public class DetailActivity extends Activity{
@@ -85,9 +85,9 @@ workflows:
           void editSimple(int idx){EditText e=new EditText(this);e.setText(items.get(idx));e.setMinLines(4);e.setTextSize(22);new AlertDialog.Builder(this).setTitle("تعديل").setView(e).setPositiveButton("حفظ",(d,w)->{items.set(idx,e.getText().toString());save();load();}).setNegativeButton("الغاء",null).show();}
           void save(){String k=title.replace(" ","_");pref.edit().putString(k,String.join(";;NEXT;;",items)).apply();}
           }
-          EOF
+          E4
           gradle wrapper --gradle-version 8.4
           chmod +x./gradlew
-        ./gradlew :app:assembleDebug --no-daemon
+         ./gradlew :app:assembleDebug --no-daemon
     artifacts:
       - app/build/outputs/apk/debug/*.apk
